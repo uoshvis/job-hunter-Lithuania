@@ -7,9 +7,11 @@ from time import sleep
 from random import randint
 from datetime import datetime
 
+
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) ' +
-    'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'}
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36' +
+    '(KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
+}
 
 
 def utf_encoder(input_raw):
@@ -26,21 +28,25 @@ def find_pages_range(soup):
     :returns: max page number of results
     """
     pages = soup.find("ul", {'class': "pages_ul_inner"})
-    try:
-        children = pages.find_all('a')
-        for page in children:
-            max = page.string
-            print('==', max)
-    except:
-        max = 1
-    return int(max)
+    if pages:
+        results = pages.find_all('a')
+        page_max = results[-1].string
+    elif pages is None:
+        page_max = 1
+    else:
+        raise AttributeError
+
+    return int(page_max)
 
 
 def get_soup(city_name, keyword, page_number):
     """
-    :params city_name:
-    :params keyword:
-    :params page_number:
+    :param city_name:
+    :type city_name: str
+    :param keyword:
+    :type keyword: str
+    :param page_number:
+    :type page_number: int
     :returns: soup object of given search result page
     """
 
@@ -57,10 +63,19 @@ def get_soup(city_name, keyword, page_number):
     return soup
 
 
+def _format_data(result):
+
+    result = result.get_text()
+    result = result.replace('*', '')
+    result = " ".join(result.replace(chr(8226), '').split())
+    return result
+
+
 def scrape_ad(url_link):
     """
     :param url_link: url of single ad page
-    :returns: statistics of the single ad: views, candidates, ratio
+    :type url_link: str
+    :returns: dict of single add data
     """
     ad_statistics = {}
     salary = None
@@ -75,7 +90,7 @@ def scrape_ad(url_link):
     source = requests.get(url_link, headers=headers)
     soup = bs.BeautifulSoup(source.text, 'lxml')
 
-    ad_id = int(re.findall(r"-\d+", url_link)[0].lstrip('-'))
+    ad_id = int(re.findall((r"\d{5,}"), url_link)[0].lstrip('-'))
 
     position = soup.find(
         'h1',
@@ -93,8 +108,6 @@ def scrape_ad(url_link):
     jobad_expiration = soup.find(
         'div',
         {'id': 'jobad_expiration'})['title']
-    # jobad_expiration = re.search(r'\d{4}.\d{2}.\d{2}', jobad_expiration)
-    # jobad_expiration = jobad_expiration.group().replace('.', '-')
     jobad_expiration = jobad_expiration.replace('.', '-')
     jobad_expiration = datetime.strptime(jobad_expiration, '%Y-%m-%d')
 
@@ -116,7 +129,7 @@ def scrape_ad(url_link):
     else:
         ad_statistics['views'] = 'Error'
         print('I have problems in find_candidates_statistics')
-        #   raise ValueError('Candidates info list is not good for me')
+        # raise ValueError('Candidates info list is not good for me')
 
     jobad = soup.find_all('div', {'class': 'jobad_txt'})
 
@@ -128,29 +141,24 @@ def scrape_ad(url_link):
         'div',
         {'class': 'jobad_txt', 'itemprop': 'responsibilities'})
     if responsibilities:
-        responsibilities = responsibilities.get_text()
-        responsibilities = responsibilities.replace('*', '')
-        responsibilities = " ".join(responsibilities.replace(chr(8226), '').split())
+        responsibilities = _format_data(responsibilities)
 
     qualifications = soup.find(
         'div',
         {'class': 'jobad_txt', 'itemprop': 'qualifications'})
     if qualifications:
-        qualifications = qualifications.get_text()
-        qualifications = qualifications.replace('*', '')
-        qualifications = " ".join(qualifications.replace(chr(8226), '').split())
+        qualifications = _format_data(qualifications)
 
     benefits = soup.find(
         'div',
         {'class': 'jobad_txt', 'itemprop': 'benefits'})
     if benefits:
-        benefits = benefits.get_text()
-        benefits = benefits.replace('*', '')
-        benefits = " ".join(benefits.replace(chr(8226), '').split())
+        benefits = _format_data(benefits)
 
     sections = soup.find_all('section')
     for section in sections:
-        heading = section.find('h4', {'class': 'heading4 pt30 pb5'})
+        heading = section.find('h4', {'class': 'heading4 jobad_subheading'})
+
         if heading and (heading.get_text() == 'Atlyginimas' or heading.get_text() == 'Salary'):
             salary_info = " ".join(
                 section.find('div', {'class': 'jobad_txt'}).get_text().split())
@@ -161,15 +169,16 @@ def scrape_ad(url_link):
             elif salary and len(salary) == 1:
                 salary_from = int(salary[0])
 
-    salary_avg_box = soup.find(
+    salary_avg_box = soup.find_all(
         'div',
-        {'class': 'jobad_average_salary_box'})
+        {'class': 'jobad_company_bl'})
+
     if salary_avg_box:
-        salary_avg = re.findall(r"(\d+)€", salary_avg_box.get_text())
+        salary_avg = re.findall(r"(\d+)€", salary_avg_box[-1].get_text())
         if salary_avg:
             salary_avg = int(salary_avg[0])
 
-        salary_percent = re.findall(r"(\d+)%", salary_avg_box.get_text())
+        salary_percent = re.findall(r"(\d+)%", salary_avg_box[-1].get_text())
         if salary_percent:
             salary_percent = int(salary_percent[0])
         else:
@@ -191,27 +200,27 @@ def scrape_ad(url_link):
         'salary_avg': salary_avg,
         'salary_percent': salary_percent
     }
-    print(return_data, '\n')
+
     return return_data
 
 
 def scrape_list_page(soup):
     """
-    :params soup: soup of single search result page
+    :param soup: soup of single search result page
+    :type soup: soup object
     :returns: list of candidates statistics from single
         search results page
     """
     scraped_ads = []
 
     job_links = soup.find_all('a', {'class': "list_a can_visited list_a_has_logo"})
-    print('in scrape_list_page')
-    print(job_links)
+
     if not job_links:
         job_links = soup.find_all(
             'a',
             {'class': "list_a can_visited list_vip_a"})
     for job_link in job_links:
-        print('Scraping..', job_link['href'])
+        print('Scraping.. ', job_link['href'])
         scraped_ad = scrape_ad(job_link['href'])
         scraped_ads.append(scraped_ad)
         sleep(randint(1, 4))
@@ -220,24 +229,26 @@ def scrape_list_page(soup):
 
 
 if __name__ == '__main__':
+
     requests.packages.urllib3.disable_warnings()
     final_positions = []
-    page_number = 1
+    initial_page = 1
+
     if len(sys.argv) == 3:
         city_name = sys.argv[2]
         keyword = sys.argv[1]
     else:
         city_name = None
         keyword = None
-    soup = get_soup(city_name, keyword, page_number)
+    soup = get_soup(city_name, keyword, initial_page)
     page_range = find_pages_range(soup)
-    print('page_range {}'.format(page_range))
+    print('Page range: {}'.format(page_range))
 
-    while page_number <= page_range:
-        print('Scannnig page {}'.format(page_number))
-        soup = get_soup(city_name, keyword, page_number)
+    while initial_page <= page_range:
+        print('Scannnig page {}'.format(initial_page))
+        soup = get_soup(city_name, keyword, initial_page)
         scraped_ads = scrape_list_page(soup)
         print('scraped ads', scraped_ads)
-        page_number += 1
+        initial_page += 1
         sleep(randint(1, 5))
     print('Job Done')
