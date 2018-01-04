@@ -4,18 +4,24 @@ import re
 from time import sleep
 from random import randint
 from datetime import datetime
+import sys
 
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) ' +
     'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
-base_url = 'http://www.cv.lt/employee/announcementsAll.do?regular=true&page='
+base_url = (
+    'http://www.cv.lt/employee/announcementsAll.do?' +
+    'regular=true&text={keyword}&page={page}')
 
 
-def get_soup(url=None, init_page=None):
+def get_soup(url=None, keyword=None, city=None, init_page=None):
     if init_page:
-        source = requests.get(base_url + str(init_page), headers=headers)
+        source = requests.get(
+            base_url.format(keyword=keyword, page=str(init_page)),
+            headers=headers
+        )
     elif url:
         source = requests.get(url, headers=headers)
 
@@ -188,12 +194,23 @@ def scrape_list_page(soup):
 def main():
 
     init_page = 1
-    soup_main = get_soup(url=None, init_page=init_page)
+
+    if len(sys.argv) == 2:
+        keyword = sys.argv[1]
+        city = None
+    elif len(sys.argv) == 1:
+        keyword = None
+        city = None
+    else:
+        sys.exit('Usage: cv_scraper.py <keyword>')
+
+    soup_main = get_soup(url=None, keyword=keyword, city=city, init_page=init_page)
     page_range = find_pages_range(soup_main)
     print('page_range {}'.format(page_range))
+
     while init_page <= page_range:
         print('Scannnig page: {}'.format(init_page))
-        soup = get_soup(url=None, init_page=init_page)
+        soup = get_soup(url=None, keyword=keyword, city=city, init_page=init_page)
         scraped_data = scrape_list_page(soup)
 
         init_page += 1
