@@ -235,8 +235,8 @@ if __name__ == '__main__':
     initial_page = 1
 
     if len(sys.argv) == 3:
-        city_name = sys.argv[2]
         keyword = sys.argv[1]
+        city_name = sys.argv[2]
     else:
         city_name = None
         keyword = None
