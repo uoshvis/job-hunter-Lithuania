@@ -1,10 +1,13 @@
 import bs4 as bs
-import requests
 import re
-from time import sleep
-from random import randint
-from datetime import datetime
+import requests
 import sys
+
+from datetime import datetime
+from random import randint
+from time import sleep
+
+from city_codes import city_codes
 
 
 headers = {
@@ -13,13 +16,13 @@ headers = {
 
 base_url = (
     'http://www.cv.lt/employee/announcementsAll.do?' +
-    'regular=true&text={keyword}&page={page}')
+    'city={city}&regular=true&state=true&text={keyword}&page={page}')
 
 
 def get_soup(url=None, keyword=None, city=None, init_page=None):
     if init_page:
         source = requests.get(
-            base_url.format(keyword=keyword, page=str(init_page)),
+            base_url.format(keyword=keyword, city=city, page=str(init_page)),
             headers=headers
         )
     elif url:
@@ -185,22 +188,38 @@ def scrape_list_page(soup):
         }
 
         list_data.update(ad_data)
+        print(list_data)
         scraped_ads.append(list_data)
-        print(scraped_ads)
 
     return scraped_ads
+
+
+def _get_city_code(city):
+    """Searches for city code
+    param city: city name to search
+    :type city: str
+    :returns: str of city code if found else None
+    """
+    city = city.capitalize()
+    return str(city_codes.get(city, None))
 
 
 def main():
 
     init_page = 1
 
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 3:
+        keyword = sys.argv[1]
+        city = _get_city_code(sys.argv[2])
+
+    elif len(sys.argv) == 2:
         keyword = sys.argv[1]
         city = None
+
     elif len(sys.argv) == 1:
         keyword = None
         city = None
+
     else:
         sys.exit('Usage: cv_scraper.py <keyword>')
 
