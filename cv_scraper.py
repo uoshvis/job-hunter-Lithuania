@@ -1,7 +1,7 @@
+import argparse
 import bs4 as bs
 import re
 import requests
-import sys
 
 from datetime import datetime
 from random import randint
@@ -112,7 +112,7 @@ def scrape_ad_page(url):
                     jobad_expiration = data.find_next_sibling().get_text()
                     jobad_expiration = jobad_expiration.replace('.', '-')
                     jobad_expiration = datetime.strptime(jobad_expiration, '%Y-%m-%d')
-            if data.get_text() in ['Contact person:' , 'Kontaktinis asmuo:']:
+            if data.get_text() in ['Contact person:', 'Kontaktinis asmuo:']:
                 if data.find_next_sibling():
                     contact_person = data.find_next_sibling().get_text()
             if data.get_text() in ['El. paštas:', 'E-mail:']:
@@ -208,20 +208,37 @@ def main():
 
     init_page = 1
 
-    if len(sys.argv) == 3:
-        keyword = sys.argv[1]
-        city = _get_city_code(sys.argv[2])
+    parser = argparse.ArgumentParser(description='finds job postings')
+    parser.add_argument(
+        '-k',
+        '--keyword',
+        type=str,
+        default='',
+        help='keyword to search'
+    )
+    parser.add_argument(
+        '-c',
+        '--city',
+        type=str,
+        default='',
+        help='city to search'
+    )
+    args = parser.parse_args()
 
-    elif len(sys.argv) == 2:
-        keyword = sys.argv[1]
-        city = None
+    if args.keyword and args.city:
+        keyword = args.keyword
+        city = _get_city_code(args.city)
 
-    elif len(sys.argv) == 1:
-        keyword = None
-        city = None
+    elif args.keyword and not args.city:
+        keyword = args.keyword
+        city = ''
 
+    elif not args.keyword and args.city:
+        keyword = ''
+        city = _get_city_code(args.city)
     else:
-        sys.exit('Usage: cv_scraper.py <keyword>')
+        keyword = ''
+        city = ''
 
     soup_main = get_soup(url=None, keyword=keyword, city=city, init_page=init_page)
     page_range = find_pages_range(soup_main)
