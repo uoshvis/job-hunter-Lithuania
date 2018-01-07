@@ -1,7 +1,7 @@
+import argparse
 import bs4 as bs
 import requests
 import re
-import sys
 
 from time import sleep
 from random import randint
@@ -39,10 +39,10 @@ def find_pages_range(soup):
     return int(page_max)
 
 
-def get_soup(city_name, keyword, page_number):
+def get_soup(city, keyword, page_number):
     """
-    :param city_name:
-    :type city_name: str
+    :param city:
+    :type city: str
     :param keyword:
     :type keyword: str
     :param page_number:
@@ -50,9 +50,9 @@ def get_soup(city_name, keyword, page_number):
     :returns: soup object of given search result page
     """
 
-    if city_name and keyword:
+    if keyword or city:
         source = requests.get(
-            'https://www.cvbankas.lt/?miestas=' + utf_encoder(city_name) +
+            'https://www.cvbankas.lt/?miestas=' + utf_encoder(city) +
             '&keyw=' + utf_encoder(keyword) +
             '&page=' + str(page_number), headers=headers)
     else:
@@ -234,19 +234,30 @@ if __name__ == '__main__':
     final_positions = []
     initial_page = 1
 
-    if len(sys.argv) == 3:
-        keyword = sys.argv[1]
-        city_name = sys.argv[2]
-    else:
-        city_name = None
-        keyword = None
-    soup = get_soup(city_name, keyword, initial_page)
+    parser = argparse.ArgumentParser(description='finds job postings')
+    parser.add_argument(
+        '-k',
+        '--keyword',
+        type=str,
+        default='',
+        help='keyword to search'
+    )
+    parser.add_argument(
+        '-c',
+        '--city',
+        type=str,
+        default='',
+        help='city to search'
+    )
+    args = parser.parse_args()
+
+    soup = get_soup(args.city, args.keyword, initial_page)
     page_range = find_pages_range(soup)
     print('Page range: {}'.format(page_range))
 
     while initial_page <= page_range:
         print('Scannnig page {}'.format(initial_page))
-        soup = get_soup(city_name, keyword, initial_page)
+        soup = get_soup(args.city, args.keyword, initial_page)
         scraped_ads = scrape_list_page(soup)
         print('scraped ads', scraped_ads)
         initial_page += 1
