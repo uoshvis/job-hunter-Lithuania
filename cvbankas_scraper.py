@@ -52,8 +52,8 @@ def get_soup(city, keyword, page_number):
 
     if keyword or city:
         source = requests.get(
-            'https://www.cvbankas.lt/?miestas=' + utf_encoder(city) +
-            '&keyw=' + utf_encoder(keyword) +
+            'https://www.cvbankas.lt/?miestas=' + city +
+            '&keyw=' + keyword +
             '&page=' + str(page_number), headers=headers)
     else:
         source = requests.get(
@@ -232,7 +232,7 @@ if __name__ == '__main__':
 
     requests.packages.urllib3.disable_warnings()
     final_positions = []
-    initial_page = 1
+    page_number = 1
 
     parser = argparse.ArgumentParser(description='finds job postings')
     parser.add_argument(
@@ -251,15 +251,19 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    soup = get_soup(args.city, args.keyword, initial_page)
+    soup = get_soup(
+        city=args.city,
+        keyword=args.keyword,
+        page_number=page_number
+    )
     page_range = find_pages_range(soup)
     print('Page range: {}'.format(page_range))
 
-    while initial_page <= page_range:
-        print('Scannnig page {}'.format(initial_page))
-        soup = get_soup(args.city, args.keyword, initial_page)
+    while page_number <= page_range:
+        print('Scannnig page {}'.format(page_number))
+        soup = get_soup(city=args.city, keyword=args.keyword, page_number=page_number)
         scraped_ads = scrape_list_page(soup)
         print('scraped ads', scraped_ads)
-        initial_page += 1
+        page_number += 1
         sleep(randint(1, 5))
     print('Job Done')

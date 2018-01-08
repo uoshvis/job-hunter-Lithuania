@@ -19,14 +19,12 @@ base_url = (
     'city={city}&regular=true&state=true&text={keyword}&page={page}')
 
 
-def get_soup(url=None, keyword=None, city=None, init_page=None):
-    if init_page:
-        source = requests.get(
-            base_url.format(keyword=keyword, city=city, page=str(init_page)),
-            headers=headers
-        )
-    elif url:
-        source = requests.get(url, headers=headers)
+def get_soup(keyword=None, city=None, page_number=None):
+
+    source = requests.get(
+        base_url.format(keyword=keyword, city=city, page=str(page_number)),
+        headers=headers
+    )
 
     soup = bs.BeautifulSoup(source.text, 'lxml')
 
@@ -66,7 +64,8 @@ def scrape_ad_page(url):
     contact_person = None
     contact_email = None
 
-    soup = get_soup(url=url)
+    source = requests.get(url, headers=headers)
+    soup = bs.BeautifulSoup(source.text, 'lxml')
     headings_2 = soup.find_all('h2')
 
     job_text = soup.find("div", class_="jobTxtRp")
@@ -206,7 +205,7 @@ def _get_city_code(city):
 
 def main():
 
-    init_page = 1
+    page_number = 1
 
     parser = argparse.ArgumentParser(description='finds job postings')
     parser.add_argument(
@@ -240,16 +239,16 @@ def main():
         keyword = ''
         city = ''
 
-    soup_main = get_soup(url=None, keyword=keyword, city=city, init_page=init_page)
+    soup_main = get_soup(keyword=keyword, city=city, page_number=page_number)
     page_range = find_pages_range(soup_main)
     print('page_range {}'.format(page_range))
 
-    while init_page <= page_range:
-        print('Scannnig page: {}'.format(init_page))
-        soup = get_soup(url=None, keyword=keyword, city=city, init_page=init_page)
+    while page_number <= page_range:
+        print('Scannnig page: {}'.format(page_number))
+        soup = get_soup(keyword=keyword, city=city, page_number=page_number)
         scraped_data = scrape_list_page(soup)
 
-        init_page += 1
+        page_number += 1
         sleep(randint(1, 5))
 
 
