@@ -27,19 +27,21 @@ def main():
     args = parser.parse_args()
 
     for site in SITES_AVAILABLE:
+        print('Scraping from: {site}'.format(site=site.__name__))
         page_number = 1
         get_soup = getattr(site, 'get_soup')
-        soup = get_soup(
+        soup_main = get_soup(
             city=args.city,
             keyword=args.keyword,
             page_number=page_number
         )
         find_pages_range = getattr(site, 'find_pages_range')
-        page_range = find_pages_range(soup)
+        page_range = find_pages_range(soup_main)
         print('Page range of {site} is {range}.'.format(
             site=site.__name__,
             range=page_range)
         )
+
         while page_number <= page_range:
             print('Scannnig page {}'.format(page_number))
             soup = get_soup(
@@ -48,10 +50,10 @@ def main():
                 page_number=page_number
             )
             scraped_ads = getattr(site, 'scrape_list_page')(soup)
-            print('scraped ads', scraped_ads)
+            print('Scraped ads: ', scraped_ads)
             page_number += 1
             sleep(randint(1, 5))
-        print('Job Done')
+    print('Job Done. From main.')
 
 
 if __name__ == '__main__':

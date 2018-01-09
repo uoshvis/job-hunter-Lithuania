@@ -17,4 +17,4 @@ Short usage
 
 .. code::
 
-	python main.py <keyword> <city>
+	python main.py --keyword <keyword> --city <city>

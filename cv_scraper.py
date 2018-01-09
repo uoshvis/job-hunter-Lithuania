@@ -16,13 +16,24 @@ headers = {
 
 base_url = (
     'http://www.cv.lt/employee/announcementsAll.do?' +
-    'city={city}&regular=true&state=true&text={keyword}&page={page}')
+    'city={city_code}&regular=true&state=true&text={keyword}&page={page}')
 
 
-def get_soup(keyword=None, city=None, page_number=None):
+def get_soup(keyword, city, page_number):
+
+    if city:
+        city_code = _get_city_code(city)
+        if not city_code:
+            print('City code not found')
+    else:
+        city_code = ''
 
     source = requests.get(
-        base_url.format(keyword=keyword, city=city, page=str(page_number)),
+        base_url.format(
+            keyword=keyword,
+            city_code=city_code,
+            page=str(page_number)
+        ),
         headers=headers
     )
 
@@ -168,6 +179,7 @@ def scrape_list_page(soup):
             url_sri = prefix + url_sri['href']
             ad_id = int(re.search('\d-(\d+)', url_sri).groups()[0])
             ad_data = scrape_ad_page(url_sri)
+            print('Scraping.. ', url_sri)
             sleep(randint(1, 4))
 
         # find salary if exists
@@ -197,10 +209,10 @@ def _get_city_code(city):
     """Searches for city code
     param city: city name to search
     :type city: str
-    :returns: str of city code if found else None
+    :returns: str of city code if found else ''
     """
     city = city.capitalize()
-    return str(city_codes.get(city, None))
+    return str(city_codes.get(city, ''))
 
 
 def main():
@@ -224,32 +236,26 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.keyword and args.city:
-        keyword = args.keyword
-        city = _get_city_code(args.city)
-
-    elif args.keyword and not args.city:
-        keyword = args.keyword
-        city = ''
-
-    elif not args.keyword and args.city:
-        keyword = ''
-        city = _get_city_code(args.city)
-    else:
-        keyword = ''
-        city = ''
-
-    soup_main = get_soup(keyword=keyword, city=city, page_number=page_number)
+    soup_main = get_soup(
+        keyword=args.keyword,
+        city=args.city,
+        page_number=page_number
+    )
     page_range = find_pages_range(soup_main)
-    print('page_range {}'.format(page_range))
+    print('Page range: {}'.format(page_range))
 
     while page_number <= page_range:
         print('Scannnig page: {}'.format(page_number))
-        soup = get_soup(keyword=keyword, city=city, page_number=page_number)
-        scraped_data = scrape_list_page(soup)
+        soup = get_soup(
+            keyword=args.keyword,
+            city=args.city,
+            page_number=page_number
+        )
+        scrape_list_page(soup)
 
         page_number += 1
         sleep(randint(1, 5))
+    print('Job Done')
 
 
 if __name__ == '__main__':

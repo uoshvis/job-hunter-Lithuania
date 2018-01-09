@@ -131,11 +131,13 @@ def scrape_ad(url_link):
         print('I have problems in find_candidates_statistics')
         # raise ValueError('Candidates info list is not good for me')
 
-    jobad = soup.find_all('div', {'class': 'jobad_txt'})
-
-    place = jobad[0].find_all('a', {'class': 'js_ga_event'})
-    if place:
-        place = place[-1].get_text()
+    jobad = soup.find_all('div', {'id': 'jobad_location', 'class': 'txt_2'})
+    locations = []
+    if jobad:
+        tags_a = jobad[0].find_all('a')
+        for tag_a in tags_a:
+            locations.append(tag_a.get_text())
+    place = ', '.join(locations)
 
     responsibilities = soup.find(
         'div',
@@ -231,7 +233,6 @@ def scrape_list_page(soup):
 if __name__ == '__main__':
 
     requests.packages.urllib3.disable_warnings()
-    final_positions = []
     page_number = 1
 
     parser = argparse.ArgumentParser(description='finds job postings')
@@ -251,19 +252,23 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    soup = get_soup(
+    soup_main = get_soup(
         city=args.city,
         keyword=args.keyword,
         page_number=page_number
     )
-    page_range = find_pages_range(soup)
+    page_range = find_pages_range(soup_main)
     print('Page range: {}'.format(page_range))
 
     while page_number <= page_range:
         print('Scannnig page {}'.format(page_number))
-        soup = get_soup(city=args.city, keyword=args.keyword, page_number=page_number)
-        scraped_ads = scrape_list_page(soup)
-        print('scraped ads', scraped_ads)
+        soup = get_soup(
+            city=args.city,
+            keyword=args.keyword,
+            page_number=page_number
+        )
+        scrape_list_page(soup)
+
         page_number += 1
         sleep(randint(1, 5))
     print('Job Done')
