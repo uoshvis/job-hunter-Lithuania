@@ -1,13 +1,15 @@
 import argparse
-import cvbankas_scraper as cvbankas
-import cv_scraper as cv
 
 from time import sleep
 from random import randint
 
+import cvbankas_scraper as cvbankas
+import cv_scraper as cv
+from write_to_mongodb import write_positions_db
+
 
 def main():
-    SITES_AVAILABLE = [cv, cvbankas]
+    SITES_AVAILABLE = [cvbankas]
 
     parser = argparse.ArgumentParser(description='finds job postings')
     parser.add_argument(
@@ -51,8 +53,10 @@ def main():
             )
             scraped_ads = getattr(site, 'scrape_list_page')(soup)
             print('Scraped ads: ', scraped_ads)
+            write_positions_db(scraped_ads, 'gogo')
             page_number += 1
             sleep(randint(1, 5))
+
     print('Job Done. From main.')
 
 
