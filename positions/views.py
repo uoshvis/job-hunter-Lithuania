@@ -10,7 +10,7 @@ from main import search_positions
 
 class PositionsViewSet(viewsets.ViewSet):
     """
-    Returs positions from db-
+    Returns positions from db-
     or searches for new positions
     """
     def retrieve(self, request, pk=None):
@@ -58,5 +58,19 @@ class PositionsViewSet(viewsets.ViewSet):
             serializer = PositionsSerializer(queryset)
             data = serializer.data
             return Response(data)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    @list_route(methods=['GET'])
+    def filter(self, request):
+        if request.query_params:
+            ids = request.query_params.get('ids', None)
+            if ids:
+                ids = ids.split(',')
+                queryset = Positions.objects(id__in=ids)
+                if queryset:
+                    serializer = PositionsSerializer(queryset, many=True)
+                    data = serializer.data
+                    return Response(data)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
