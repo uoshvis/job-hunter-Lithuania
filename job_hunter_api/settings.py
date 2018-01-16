@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import sys
 from mongoengine import connect
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -84,7 +85,11 @@ DATABASES = {
     }
 }
 
-connect('gogo', alias='default')
+if 'test' in sys.argv:
+    db = connect('gogo-test', alias='default')
+else:
+    connect('gogo', alias='default')
+
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
