@@ -5,7 +5,7 @@ from rest_framework.decorators import list_route, detail_route
 
 from positions.serializers import PositionsSerializer
 from positions.models import Positions
-from main import search_positions
+from utils.main import search_positions
 
 
 class PositionsViewSet(viewsets.ViewSet):

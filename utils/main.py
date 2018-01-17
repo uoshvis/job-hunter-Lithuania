@@ -3,9 +3,9 @@ import argparse
 from time import sleep
 from random import randint
 
-import cvbankas_scraper as cvbankas
-import cv_scraper as cv
-from write_to_mongodb import write_positions_db
+from . import cvbankas_scraper as cvbankas
+# import cv_scraper as cv
+from .write_to_mongodb import write_positions_db
 
 
 def search_positions(city, keyword):
