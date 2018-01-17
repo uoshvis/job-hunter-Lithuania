@@ -1,20 +1,30 @@
-====================
-job-hunter-Lithuania
-====================
-Job posting scraper of Lithuanian job posting websites.
+=============================
+job-hunter-Lithuania REST API
+=============================
+This is REST API of job posting scraper of Lithuanian job posting websites.
+
 
 Supported job ad sites:
 
-- `cv.lt <https://www.cv.lt/>`_
-- `cvbankas.lt <https://www.cvbankas.lt/>`_
+  - `cv.lt <https://www.cv.lt/>`_
+  - `cvbankas.lt <https://www.cvbankas.lt/>`_
 
-
-Take care and use it at your own risk.
+Porpose:
+ Project is built for educational purpose only.
 
 
 Short usage
 -----------
+Install required packages from requirements.txt file.
 
 .. code::
 
-	python main.py --keyword <keyword> --city <city>
+       pip install -r requirements.txt
+
+Start development server.
+
+.. code::
+
+	python manage.py runserver
+
+You can find short documentation of API endpoints at *http://localhost:8000/docs/*
