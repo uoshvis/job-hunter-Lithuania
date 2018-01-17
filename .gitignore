@@ -1,6 +1,8 @@
 # My ignores
 ENV*/
 *.sqlite3
+cover/
+rest-tutorial/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
