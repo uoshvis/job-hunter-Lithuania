@@ -10,6 +10,8 @@ class HunterTest(APITestCase):
     client = APIClient()
 
     def setUp(self):
+        self.db = connect('gogo-test')
+
         self.positions = []
         for i in range(3):
             self.positions.append(Positions.objects.create(
@@ -18,9 +20,8 @@ class HunterTest(APITestCase):
             ))
 
     def tearDown(self):
-        db = connect('gogo-test')
-        db.drop_database('gogo-test')
-        db.close()
+        self.db.drop_database('gogo-test')
+        self.db.close()
 
     def test_list(self):
         link = '/api/positions/'
@@ -47,7 +48,7 @@ class HunterTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['comment'], data['comment'])
 
-    def test_compare(self):
+    def test_filter(self):
         link = '/api/positions/' + 'filter/?ids=' + str(self.positions[0].id) + \
             ',' + str(self.positions[1].id)
         print(link)

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 import sys
 from mongoengine import connect
+from mongoengine import connection
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -52,7 +53,7 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 NOSE_ARGS = [
     '--with-coverage',
-    '--cover-html',
+    #   '--cover-html',
     '--cover-package=positions',
 ]
 
@@ -98,6 +99,7 @@ DATABASES = {
 }
 
 if 'test' in sys.argv:
+    connection.disconnect()
     db = connect('gogo-test', alias='default')
 else:
     connect('gogo', alias='default')
