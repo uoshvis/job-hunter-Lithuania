@@ -7,7 +7,7 @@ from positions.views import PositionsViewSet
 router = routers.DefaultRouter()
 
 # register REST API endpoints with DRF router
-router.register(r'positions', PositionsViewSet, r"positions")
+router.register(r'positions', PositionsViewSet, base_name='position')
 
 urlpatterns = [
     # default django admin interface

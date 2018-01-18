@@ -42,7 +42,7 @@ class PositionsViewSet(viewsets.ViewSet):
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-    @list_route(methods=['GET'])
+    @list_route()
     def search(self, request):
         """
         Initialize scraper using parameters ?city=City&keyword=Keyword
@@ -73,7 +73,7 @@ class PositionsViewSet(viewsets.ViewSet):
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-    @list_route(methods=['GET'])
+    @list_route()
     def filter(self, request):
         """
         Filter positions by given ids ?ids=id1,id2
