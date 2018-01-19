@@ -13,6 +13,7 @@ def write_positions_db(positions_data, db_name=None):
 
         matched = 0
         modified = 0
+        ids = []
         for position_data in positions_data:
 
             keys_only = {'ad_id', 'position', 'place'}
@@ -25,7 +26,9 @@ def write_positions_db(positions_data, db_name=None):
             )
             matched += result.matched_count
             modified += result.modified_count
+            ids.append(position_data['ad_id'])
         print('Matched: {}, modified {}'.format(matched, modified))
+    return ids
 
 
 def main():

@@ -39,11 +39,12 @@ def search_positions(city, keyword):
             )
             scraped_ads = getattr(site, 'scrape_list_page')(soup)
             print('Scraped ads: ', scraped_ads)
-            write_positions_db(scraped_ads, 'gogo')
+            ids = write_positions_db(scraped_ads, 'gogo')
             page_number += 1
             sleep(randint(1, 5))
 
     print('Job Done. From main.')
+    return ids
 
 
 def main():
