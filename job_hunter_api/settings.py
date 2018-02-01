@@ -88,6 +88,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'job_hunter_api.wsgi.application'
 
 
+CELERY_BROKER_URL = 'amqp://localhost'
+
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 

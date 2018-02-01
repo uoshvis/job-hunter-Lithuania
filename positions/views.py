@@ -2,10 +2,11 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import list_route, detail_route
+from django.contrib import messages
 
 from positions.serializers import PositionsSerializer
 from positions.models import Positions
-from utils.main import search_positions
+from .tasks import scrape_ads
 
 
 class PositionsViewSet(viewsets.ViewSet):
@@ -45,17 +46,20 @@ class PositionsViewSet(viewsets.ViewSet):
     @list_route()
     def search(self, request):
         """
-        Initialize scraper using parameters ?city=City&keyword=Keyword
+        Initialize scraper using parameters ?city=City&keyword=keyword
+        starts Celery Worker Process
         """
         if request.query_params:
             city = request.query_params.get('city', '')
             keyword = request.query_params.get('keyword', '')
-            search_positions(city=city, keyword=keyword)
-        queryset = Positions.objects.all()
-        serializer = PositionsSerializer(queryset, many=True)
-        data = serializer.data
-
-        return Response(data)
+            scrape_ads.delay(city=city, keyword=keyword)
+            messages.success(self.request, 'We are searching')
+            return Response({'message': 'Searching'})
+        else:
+            return Response(
+                {'message': 'Nothing to search'},
+                status=status.HTTP_204_NO_CONTENT
+            )
 
     @detail_route(methods=['PUT'])
     def comment(self, request, pk=None):
