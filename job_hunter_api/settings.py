@@ -65,6 +65,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # My middleware
+    'positions.middleware.SimpleMiddleware',
 ]
 
 ROOT_URLCONF = 'job_hunter_api.urls'
