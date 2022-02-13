@@ -28,7 +28,7 @@ chardet==3.0.4
 coreapi==2.3.3
 coreschema==0.0.4
 coverage==4.4.2
-cryptography==3.1
+cryptography==3.3.2
 Django==1.11.29
 django-nose==1.4.7
 django-rest-framework-mongoengine==3.4.1
